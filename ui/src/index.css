@@ -1,0 +1,215 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Premium, calming yet vibrant design system for The Vent Well */
+:root {
+  --font-sans: 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-heading: 'Balivia Medium', Georgia, serif;
+  
+  /* Rich confident blues + warm accent */
+  --color-blue-900: #0F2A5E;
+  --color-blue-800: #1E3A8A;
+  --color-blue-700: #1E40AF;
+  --color-blue-600: #2563EB;
+  --color-blue-500: #3B82F6;
+  
+  --color-accent: #F59E0B;
+  --color-accent-dark: #D97706;
+  
+  --color-bg: #FFFFFF;
+  --color-bg-soft: #F8FAFC;
+  --color-bg-tint: #F0F7FF;
+  
+  --color-text: #1E293B;
+  --color-text-muted: #475569;
+  --color-text-light: #64748B;
+}
+
+body {
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* 
+  Balivia Medium for headings & sub-headings
+  INSTRUCTIONS:
+  1. Obtain the Balivia Medium font files (woff2 preferred).
+  2. Create a `public/fonts/` folder if it doesn't exist.
+  3. Place the files there: e.g. Balivia-Medium.woff2 (and optional .woff)
+  4. The @font-face below will automatically pick them up.
+*/
+@font-face {
+  font-family: 'Balivia Medium';
+  src: url('/fonts/Balivia-Medium.woff2') format('woff2'),
+       url('/fonts/Balivia-Medium.woff') format('woff');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* Apply new fonts */
+h1, h2, h3,
+.h1, .h2, .h3 {
+  font-family: var(--font-heading);
+}
+
+/* Slightly larger type to better fill the widened layout and reduce empty feel */
+h2, .h2 {
+  font-size: 2.1rem;
+  line-height: 1.1;
+}
+@media (min-width: 1024px) {
+  h2, .h2 {
+    font-size: 2.65rem;
+  }
+}
+
+.lead {
+  font-size: 1.25rem;
+  line-height: 1.35;
+}
+@media (min-width: 1024px) {
+  .lead {
+    font-size: 1.35rem;
+  }
+}
+
+/* Floating header styles */
+.header {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.header.scrolled {
+  background-color: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(20px);
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.08);
+  border-bottom: 1px solid #E2E8F0;
+}
+
+.header.scrolled .header-inner {
+  padding-top: 0.75rem;
+  padding-bottom: 0.75rem;
+}
+
+/* Premium buttons */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 px-6 py-3 rounded-full font-medium transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2;
+}
+
+.btn-primary {
+  @apply bg-brand-blue-700 text-white hover:bg-brand-blue-800 active:scale-[0.985] shadow-premium hover:shadow-float focus:ring-brand-blue-600;
+}
+
+.btn-secondary {
+  @apply border border-brand-blue-700 text-brand-blue-700 hover:bg-brand-blue-50 active:scale-[0.985] focus:ring-brand-blue-600;
+}
+
+.btn-warm {
+  @apply bg-accent-warm-500 text-white hover:bg-accent-warm-600 active:scale-[0.985] shadow-premium focus:ring-accent-warm-500;
+}
+
+.btn-ghost {
+  @apply text-brand-blue-700 hover:bg-brand-blue-50;
+}
+
+/* Section styling - generous but tighter to reduce empty vertical space while keeping aesthetics */
+.section {
+  @apply py-12 lg:py-16;
+}
+
+.section-alt {
+  @apply bg-brand-blue-50/30;
+}
+
+/* Card styles for team, values */
+.card {
+  @apply bg-white rounded-3xl p-8 shadow-premium border border-slate-100 transition-all duration-300;
+}
+
+.card:hover {
+  @apply shadow-float -translate-y-0.5;
+}
+
+/* Therapist card specific */
+.therapist-card {
+  @apply overflow-hidden;
+}
+
+.therapist-card img {
+  @apply transition-transform duration-500;
+}
+
+.therapist-card:hover img {
+  @apply scale-[1.04];
+}
+
+/* Value cards */
+.value-card {
+  @apply p-8 rounded-3xl bg-white border border-slate-100 shadow-premium transition-all hover:shadow-float;
+}
+
+/* Form styles */
+.form-input {
+  @apply w-full px-5 py-3.5 rounded-2xl border border-slate-200 bg-white placeholder:text-slate-400 text-slate-900 transition-all focus:border-brand-blue-500 focus:ring-4 focus:ring-brand-blue-500/10 outline-none;
+}
+
+/* Scroll reveal base (framer-motion handles most) */
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+}
+
+/* Nice typography scale */
+h1, .h1 {
+  @apply text-5xl lg:text-6xl font-semibold tracking-[-2.2px] text-brand-blue-900 leading-[1.05];
+}
+
+h2, .h2 {
+  @apply text-[2.1rem] lg:text-[2.75rem] font-semibold tracking-[-1.4px] text-brand-blue-900 leading-[1.1];
+}
+
+h3, .h3 {
+  @apply text-2xl font-semibold tracking-[-0.6px] text-brand-blue-900;
+}
+
+.lead {
+  @apply text-lg lg:text-2xl text-slate-600 leading-snug;
+}
+
+/* Subtle gradient accents */
+.gradient-text {
+  @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-blue-700 via-brand-blue-600 to-brand-blue-700;
+}
+
+/* Mobile nav */
+.mobile-nav {
+  @apply fixed inset-0 z-50 bg-white/95 backdrop-blur-xl pt-20 px-6;
+  animation: fadeIn 0.2s ease-out forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Micro interactions */
+.nav-link {
+  @apply relative text-slate-700 hover:text-brand-blue-700 transition-colors duration-200 font-medium;
+}
+
+.nav-link:after {
+  content: '';
+  @apply absolute bottom-[-2px] left-0 w-0 h-[2px] bg-current transition-all duration-200;
+}
+
+.nav-link:hover:after,
+.nav-link.active:after {
+  @apply w-full;
+}
+
+/* Team member decorative elements */
+.team-badge {
+  @apply inline-flex items-center px-3 py-1 rounded-full text-xs font-medium tracking-wide bg-brand-blue-50 text-brand-blue-700;
+}
