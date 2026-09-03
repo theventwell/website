@@ -181,10 +181,10 @@ const Header = () => {
               /* Logged-out: Login button */
               <button
                 onClick={handleLogin}
-                className="btn btn-secondary text-base px-6 py-2.5 flex items-center gap-2"
+                className="btn btn-blue btn-secondary text-base px-6 py-2.5 flex items-center gap-2"
               >
                 <LogIn className="w-4 h-4" />
-                Login
+                Sign In
               </button>
             )}
           </div>
