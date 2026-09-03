@@ -22,7 +22,7 @@ function App() {
     <div className="min-h-screen flex flex-col bg-white text-slate-800">
       <Header />
 
-      <main className="flex-1 pt-[88px] md:pt-[96px] lg:pt-[128px]">
+      <main className="flex-1 overflow-x-hidden pt-[76px] sm:pt-[80px] lg:pt-[104px]">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
