@@ -9,6 +9,8 @@ import Services from './pages/Services';
 import Contact from './pages/Contact';
 import Corporate from './pages/Corporate';
 import WorkshopEvents from './pages/WorkshopEvents';
+import Dashboard from './pages/Dashboard';
+import AdminRoute from './components/AdminRoute';
 
 function App() {
   return (
@@ -23,6 +25,7 @@ function App() {
           <Route path="/corporate" element={<Corporate />} />
           <Route path="/workshops" element={<WorkshopEvents />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
           {/* Fallback */}
           <Route path="*" element={<Home />} />
         </Routes>

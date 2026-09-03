@@ -1,148 +1,135 @@
 const User = require('../models/users.model');
-const Otp = require('../models/otp.model');
 const Booking = require('../models/booking.model');
-const { generateOtp, hashOtp, compareOtp, getOtpExpiry } = require('../utilities/otp.util');
+const bcrypt = require('bcryptjs');
 const { signToken } = require('../utilities/jwt.util');
-const { sendWhatsAppOtp } = require('../utilities/whatsapp.util');
+const { COOKIE_NAME, getCookieOptions, getClearCookieOptions } = require('../utilities/cookie.util');
+
+const serializeUser = (user) => ({
+  _id: user._id,
+  name: user.name,
+  email: user.email,
+  phoneNumber: user.phoneNumber,
+  role: user.role,
+});
+
+const getUserBookings = (userId) =>
+  Booking.find({ user: userId }).sort({ dateOfAppointment: -1 }).select('-__v');
+
+const SIGNUP_USER = async (req, res) => {
+  try {
+    const { name, email, password, phoneNumber } = req.body;
+    if (!name?.trim() || !email?.trim() || !password || !phoneNumber?.trim()) {
+      return res.status(400).json({ success: false, message: 'Name, email, phone number, and password are required' });
+    }
+    if (password.length < 8) {
+      return res.status(400).json({ success: false, message: 'Password must be at least 8 characters' });
+    }
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const existingUser = await User.findOne({ email: normalizedEmail });
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: 'An account already exists for this email' });
+    }
+
+    const passwordHash = await bcrypt.hash(password, 12);
+    const user = await User.create({
+      name: name.trim(),
+      email: normalizedEmail,
+      passwordHash,
+      phoneNumber: phoneNumber.trim(),
+      role: 'user',
+    });
+    const token = signToken({ userId: user._id, email: user.email, role: user.role });
+    res.cookie(COOKIE_NAME, token, getCookieOptions());
+    return res.status(201).json({ success: true, message: 'Account created successfully', data: { user: serializeUser(user), bookings: [] } });
+  } catch (error) {
+    console.error('SIGNUP_USER error:', error);
+    return res.status(500).json({ success: false, message: 'Unable to create your account. Please try again later' });
+  }
+};
 
 const LOGIN_USER = async (req, res) => {
   try {
-    const { phoneNumber, countryCode } = req.body;
+    const { email, password } = req.body;
 
-    if (!phoneNumber) {
+    if (!email || !password) {
       return res.status(400).json({
         success: false,
-        message: 'Phone number is required',
+        message: 'Email and password are required',
       });
     }
 
-    const user = await User.findOne({ phoneNumber: phoneNumber.trim() });
+    const user = await User.findOne({ email: email.trim().toLowerCase() }).select('+passwordHash');
 
-    if (!user) {
-      return res.status(404).json({
+    if (!user || !user.passwordHash || !(await bcrypt.compare(password, user.passwordHash))) {
+      return res.status(401).json({
         success: false,
-        message: 'User not found with this phone number',
+        message: 'Invalid email or password',
       });
     }
 
-    const otp = generateOtp();
-    const otpHash = await hashOtp(otp);
-    const expiresAt = getOtpExpiry();
-
-    await Otp.findOneAndUpdate(
-      { user: user._id },
-      {
-        user: user._id,
-        phoneNumber: user.phoneNumber,
-        otpHash,
-        expiresAt,
-      },
-      { upsert: true, new: true, setDefaultsOnInsert: true }
-    );
-
-    await sendWhatsAppOtp({
-      countryCode: countryCode || '',
-      phoneNumber: user.phoneNumber,
-      otp,
+    const token = signToken({
+      userId: user._id,
+      email: user.email,
+      role: user.role,
     });
+
+    res.cookie(COOKIE_NAME, token, getCookieOptions());
+    const bookings = await getUserBookings(user._id);
 
     return res.status(200).json({
       success: true,
-      message: 'OTP sent successfully via WhatsApp',
+      message: 'Login successful',
       data: {
-        userId: user._id,
-        phoneNumber: user.phoneNumber,
+        user: serializeUser(user),
+        bookings,
       },
     });
   } catch (error) {
     console.error('LOGIN_USER error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to send OTP. Please try again later',
+      message: 'Unable to log in. Please try again later',
     });
   }
 };
 
-const VERIFY_USER_OTP = async (req, res) => {
+const GET_CURRENT_USER = async (req, res) => {
   try {
-    const { userId, otp } = req.body;
-
-    if (!userId || !otp) {
-      return res.status(400).json({
-        success: false,
-        message: 'User ID and OTP are required',
-      });
-    }
-
-    const user = await User.findById(userId);
+    const user = await User.findById(req.user.userId);
 
     if (!user) {
-      return res.status(404).json({
-        success: false,
-        message: 'User not found',
-      });
-    }
-
-    const otpRecord = await Otp.findOne({ user: user._id });
-
-    if (!otpRecord) {
-      return res.status(400).json({
-        success: false,
-        message: 'No OTP found. Please request a new one',
-      });
-    }
-
-    if (otpRecord.expiresAt < new Date()) {
-      await Otp.deleteOne({ _id: otpRecord._id });
-      return res.status(400).json({
-        success: false,
-        message: 'OTP has expired. Please request a new one',
-      });
-    }
-
-    const isValidOtp = await compareOtp(otp.toString(), otpRecord.otpHash);
-
-    if (!isValidOtp) {
+      res.clearCookie(COOKIE_NAME, getClearCookieOptions());
       return res.status(401).json({
         success: false,
-        message: 'Invalid OTP',
+        message: 'Not authenticated',
       });
     }
 
-    await Otp.deleteOne({ _id: otpRecord._id });
-
-    const token = signToken({
-      userId: user._id,
-      phoneNumber: user.phoneNumber,
-      role: user.role,
-    });
-
-    const bookings = await Booking.find({ user: user._id })
-      .sort({ dateOfAppointment: -1 })
-      .select('-__v');
+    const bookings = await getUserBookings(user._id);
 
     return res.status(200).json({
       success: true,
-      message: 'Login successful',
       data: {
-        token,
-        user: {
-          _id: user._id,
-          name: user.name,
-          email: user.email,
-          phoneNumber: user.phoneNumber,
-          role: user.role,
-        },
+        user: serializeUser(user),
         bookings,
       },
     });
   } catch (error) {
-    console.error('VERIFY_USER_OTP error:', error);
+    console.error('GET_CURRENT_USER error:', error);
     return res.status(500).json({
       success: false,
-      message: 'Failed to verify OTP. Please try again later',
+      message: 'Failed to restore session',
     });
   }
 };
 
-module.exports = { LOGIN_USER, VERIFY_USER_OTP };
+const LOGOUT_USER = async (req, res) => {
+  res.clearCookie(COOKIE_NAME, getClearCookieOptions());
+  return res.status(200).json({
+    success: true,
+    message: 'Logged out successfully',
+  });
+};
+
+module.exports = { SIGNUP_USER, LOGIN_USER, GET_CURRENT_USER, LOGOUT_USER };

@@ -53,8 +53,8 @@ const Contact = () => {
         <div className="lg:col-span-3">
           {!submitted ? (
             <>
-              <h2 className="text-3xl tracking-tight font-semibold text-brand-blue-900 mb-2">Request a consultation</h2>
-              <p className="text-slate-600 mb-8">Tell us a little about what brings you in. All information is confidential.</p>
+              <h2 className="text-3xl tracking-tight font-semibold text-brand-blue-900 mb-2">Book an appointment with us</h2>
+              <p className="text-slate-600 mb-8">Take a step towards being your best self. Tell us a little about what brings you in. All information is confidential.</p>
 
               <form onSubmit={handleSubmit} className="space-y-5">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -134,7 +134,7 @@ const Contact = () => {
                   disabled={isSubmitting}
                   className="btn btn-primary w-full sm:w-auto px-10 py-3.5 text-base mt-2 disabled:opacity-70"
                 >
-                  {isSubmitting ? 'Sending your message...' : 'Request a Free Consultation'}
+                  {isSubmitting ? 'Booking your appointment...' : 'Book an appointment'}
                 </button>
                 <p className="text-xs text-slate-500">We respect your privacy. This information will only be seen by our intake team.</p>
               </form>

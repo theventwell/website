@@ -1,8 +1,16 @@
 const express = require('express');
 const userRouter = express.Router();
-const { LOGIN_USER, VERIFY_USER_OTP } = require('../controllers/users.controller.js');
+const {
+  LOGIN_USER,
+  SIGNUP_USER,
+  GET_CURRENT_USER,
+  LOGOUT_USER,
+} = require('../controllers/users.controller.js');
+const { authenticate } = require('../middlewares/auth.middleware.js');
 
+userRouter.post('/signup', SIGNUP_USER);
 userRouter.post('/login', LOGIN_USER);
-userRouter.post('/verify_otp', VERIFY_USER_OTP);
+userRouter.get('/me', authenticate, GET_CURRENT_USER);
+userRouter.post('/logout', LOGOUT_USER);
 
 module.exports = userRouter;
