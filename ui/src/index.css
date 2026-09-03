@@ -110,6 +110,10 @@ h2, .h2 {
   @apply bg-accent-warm-500 text-white hover:bg-accent-warm-600 active:scale-[0.985] shadow-premium focus:ring-accent-warm-500;
 }
 
+.btn-blue {
+  @apply bg-brand-blue-800 text-white hover:bg-brand-blue-900 active:scale-[0.985] shadow-premium focus:ring-brand-blue-900;
+}
+
 .btn-ghost {
   @apply text-brand-blue-700 hover:bg-brand-blue-50;
 }

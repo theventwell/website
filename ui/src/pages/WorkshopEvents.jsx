@@ -157,7 +157,7 @@ const WorkshopEvents = () => {
   ];
 
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       {/* ───────────────────────── Hero ───────────────────────── */}
       <section className="relative overflow-hidden bg-brand-blue-900 text-white">
         <div

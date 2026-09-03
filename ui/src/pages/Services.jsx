@@ -49,7 +49,7 @@ const services = [
 
 const Services = () => {
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       {/* Hero */}
       <section className="bg-brand-blue-900 text-white py-20 lg:py-24">
         <div className="max-w-4xl mx-auto px-6 lg:px-8 text-center">

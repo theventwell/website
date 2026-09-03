@@ -1,5 +1,6 @@
 const User = require('../models/users.model');
 const Booking = require('../models/booking.model');
+const Counter = require('../models/counter.model');
 const bcrypt = require('bcryptjs');
 const { signToken } = require('../utilities/jwt.util');
 const { COOKIE_NAME, getCookieOptions, getClearCookieOptions } = require('../utilities/cookie.util');
@@ -14,6 +15,96 @@ const serializeUser = (user) => ({
 
 const getUserBookings = (userId) =>
   Booking.find({ user: userId }).sort({ dateOfAppointment: -1 }).select('-__v');
+
+const CREATE_BOOKING = async (req, res) => {
+  try {
+    const {
+      dateOfAppointment,
+      therapyName,
+      phone,
+      countryCode = '+91',
+    } = req.body;
+
+    if (!dateOfAppointment || !therapyName?.trim() || !phone?.trim()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Date, booking type, and phone number are required',
+      });
+    }
+
+    const appointmentDate = new Date(dateOfAppointment);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    if (
+      Number.isNaN(appointmentDate.getTime()) ||
+      appointmentDate < today
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please choose a future appointment date',
+      });
+    }
+
+    const user = await User.findById(req.user.userId);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: 'Not authenticated',
+      });
+    }
+
+    // Get current year and month
+    const year = new Date().getFullYear();
+    const month = String(new Date().getMonth() + 1).padStart(2, '0');
+
+    // Counter is maintained separately for each month
+    const counterId = `booking-${year}-${month}`;
+
+    const counter = await Counter.findByIdAndUpdate(
+      counterId,
+      { $inc: { sequence: 1 } },
+      {
+        new: true,
+        upsert: true,
+      }
+    );
+
+    // 1 -> 01
+    // 2 -> 02
+    // 10 -> 10
+    const sequence = String(counter.sequence).padStart(4, '0');
+
+    // 2026 + 09 + 01 = 20260901
+    const bookingNumber = Number(`${year}${month}${sequence}`);
+
+    const booking = await Booking.create({
+      bookingNumber,
+      user: user._id,
+      countryCode: countryCode.trim() || '+91',
+      phone: phone.trim(),
+      email: user.email,
+      fullName: user.name,
+      dateOfAppointment: appointmentDate,
+      therapyName: therapyName.trim(),
+    });
+
+    return res.status(201).json({
+      success: true,
+      message: 'Appointment booked successfully',
+      data: booking,
+    });
+  } catch (error) {
+    console.error('CREATE_BOOKING error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to book your appointment. Please try again later',
+    });
+  }
+};
 
 const SIGNUP_USER = async (req, res) => {
   try {
@@ -132,4 +223,4 @@ const LOGOUT_USER = async (req, res) => {
   });
 };
 
-module.exports = { SIGNUP_USER, LOGIN_USER, GET_CURRENT_USER, LOGOUT_USER };
+module.exports = { SIGNUP_USER, LOGIN_USER, CREATE_BOOKING, GET_CURRENT_USER, LOGOUT_USER };

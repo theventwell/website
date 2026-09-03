@@ -88,7 +88,7 @@ const About = () => {
   const therapistIntroVideo = '/videos/therapist-intro.mp4';
 
   return (
-    <div className="pt-16 lg:pt-20 overflow-hidden">
+    <div className="overflow-hidden">
       {/* HERO — Mission + Visual Impact */}
       <section className="relative min-h-[92vh] flex items-center bg-brand-blue-900 text-white pt-8">
         <div className="w-[94%] max-w-[1600px] mx-auto px-6 lg:px-8 grid lg:grid-cols-12 gap-x-10 items-center">

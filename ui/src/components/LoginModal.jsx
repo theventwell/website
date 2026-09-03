@@ -1,18 +1,19 @@
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { X } from 'lucide-react';
+import { Eye, EyeOff, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const LoginModal = ({ isOpen, onClose }) => {
   const { login, signup, status, error, clearError, isAuthenticated } = useAuth();
   const [mode, setMode] = useState('login');
   const [form, setForm] = useState({ name: '', phoneNumber: '', email: '', password: '' });
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const isLoading = status === 'loading';
   const update = (field) => (event) => setForm((current) => ({ ...current, [field]: event.target.value }));
 
   useEffect(() => { if (isAuthenticated) onClose(); }, [isAuthenticated, onClose]);
   useEffect(() => {
-    if (!isOpen) { setForm({ name: '', phoneNumber: '', email: '', password: '' }); setMode('login'); clearError(); }
+    if (!isOpen) { setForm({ name: '', phoneNumber: '', email: '', password: '' }); setMode('login'); setIsPasswordVisible(false); clearError(); }
   }, [isOpen, clearError]);
   useEffect(() => {
     if (!isOpen) return undefined;
@@ -43,7 +44,7 @@ const LoginModal = ({ isOpen, onClose }) => {
         <form onSubmit={handleSubmit} className="mt-6 space-y-4">
           {mode === 'signup' && <><div><label htmlFor="signup-name" className="mb-1.5 block text-sm font-medium text-slate-600">Full name</label><input id="signup-name" value={form.name} onChange={update('name')} className="form-input" autoComplete="name" required autoFocus /></div><div><label htmlFor="signup-phone" className="mb-1.5 block text-sm font-medium text-slate-600">Phone number</label><input id="signup-phone" type="tel" value={form.phoneNumber} onChange={update('phoneNumber')} className="form-input" autoComplete="tel" required /></div></>}
           <div><label htmlFor="auth-email" className="mb-1.5 block text-sm font-medium text-slate-600">Email address</label><input id="auth-email" type="email" value={form.email} onChange={update('email')} className="form-input" autoComplete="email" placeholder="you@example.com" required autoFocus={mode === 'login'} /></div>
-          <div><label htmlFor="auth-password" className="mb-1.5 block text-sm font-medium text-slate-600">Password</label><input id="auth-password" type="password" value={form.password} onChange={update('password')} className="form-input" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={mode === 'signup' ? 8 : undefined} required /></div>
+          <div><label htmlFor="auth-password" className="mb-1.5 block text-sm font-medium text-slate-600">Password</label><div className="relative"><input id="auth-password" type={isPasswordVisible ? 'text' : 'password'} value={form.password} onChange={update('password')} className="form-input pr-12" autoComplete={mode === 'login' ? 'current-password' : 'new-password'} minLength={mode === 'signup' ? 8 : undefined} required /><button type="button" onClick={() => setIsPasswordVisible((value) => !value)} className="absolute inset-y-0 right-0 px-4 text-slate-500 hover:text-brand-blue-700" aria-label={isPasswordVisible ? 'Hide password' : 'Show password'}>{isPasswordVisible ? <EyeOff size={18} /> : <Eye size={18} />}</button></div></div>
           <button type="submit" className="btn btn-primary w-full" disabled={isLoading}>{isLoading ? 'Please wait…' : mode === 'login' ? 'Log in' : 'Create account'}</button>
         </form>
         <p className="mt-5 text-center text-sm text-slate-600">{mode === 'login' ? 'New to The Vent Well?' : 'Already have an account?'} <button type="button" onClick={switchMode} className="font-semibold text-brand-blue-700 hover:text-brand-blue-900">{mode === 'login' ? 'Sign up' : 'Log in'}</button></p>

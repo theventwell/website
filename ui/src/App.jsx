@@ -11,13 +11,18 @@ import Corporate from './pages/Corporate';
 import WorkshopEvents from './pages/WorkshopEvents';
 import Dashboard from './pages/Dashboard';
 import AdminRoute from './components/AdminRoute';
+import MyBookings from './pages/MyBookings';
+import AuthenticatedRoute from './components/AuthenticatedRoute';
+import LoginModal from './components/LoginModal';
+import { useAuth } from './context/AuthContext';
 
 function App() {
+  const { isAuthModalOpen, closeAuthModal } = useAuth();
   return (
     <div className="min-h-screen flex flex-col bg-white text-slate-800">
       <Header />
 
-      <main className="flex-1">
+      <main className="flex-1 pt-[88px] md:pt-[96px] lg:pt-[128px]">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
@@ -26,12 +31,14 @@ function App() {
           <Route path="/workshops" element={<WorkshopEvents />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
+          <Route path="/bookings" element={<AuthenticatedRoute><MyBookings /></AuthenticatedRoute>} />
           {/* Fallback */}
           <Route path="*" element={<Home />} />
         </Routes>
       </main>
 
       <Footer />
+      <LoginModal isOpen={isAuthModalOpen} onClose={closeAuthModal} />
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { createSlice } from '@reduxjs/toolkit';
-import { loginUser, logoutUser, restoreSession, signupUser } from './authThunks';
+import { createBooking, loginUser, logoutUser, restoreSession, signupUser } from './authThunks';
 
 const initialState = {
   user: null,
@@ -60,6 +60,9 @@ const authSlice = createSlice({
       .addCase(signupUser.rejected, (state, action) => {
         state.status = 'failed';
         state.error = action.payload || 'Unable to create your account';
+      })
+      .addCase(createBooking.fulfilled, (state, action) => {
+        state.bookings.unshift(action.payload);
       })
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;

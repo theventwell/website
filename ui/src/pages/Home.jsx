@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import { ArrowRight, Check, Star, ChevronLeft, ChevronRight, Shield, Heart, Video, BadgeCheck } from 'lucide-react';
 
 const Home = () => {
@@ -60,7 +59,7 @@ const Home = () => {
   };
 
   return (
-    <div className="pt-16 lg:pt-20">
+    <div>
       {/* Hero */}
       <section className="relative min-h-[78vh] lg:min-h-[82vh] flex items-center bg-gradient-to-b from-brand-blue-50 via-white to-white">
         <div className="w-[94%] max-w-[1600px] mx-auto px-6 lg:px-8 pt-8 pb-12 lg:pb-14">

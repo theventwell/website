@@ -28,6 +28,19 @@ export const signupUser = createAsyncThunk(
   }
 );
 
+export const createBooking = createAsyncThunk(
+  'auth/createBooking',
+  async (payload, { rejectWithValue }) => {
+    try {
+      console.log(payload);
+      const result = await apiFetch('/api/users/bookings', { method: 'POST', body: payload });
+      return result.data;
+    } catch (error) {
+      return rejectWithValue(error.message || 'Unable to book your appointment');
+    }
+  }
+);
+
 export const restoreSession = createAsyncThunk(
   'auth/restoreSession',
   async (_, { rejectWithValue }) => {

@@ -1,12 +1,13 @@
-import { createContext, useCallback, useContext, useEffect, useMemo } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { clearAuthError } from '../store/authSlice';
-import { loginUser, logoutUser, restoreSession, signupUser } from '../store/authThunks';
+import { createBooking, loginUser, logoutUser, restoreSession, signupUser } from '../store/authThunks';
 
 const AuthContext = createContext(null);
 
 export const AuthProvider = ({ children }) => {
   const dispatch = useDispatch();
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const { user, bookings, status, error } = useSelector((state) => state.auth);
 
   useEffect(() => {
@@ -19,6 +20,7 @@ export const AuthProvider = ({ children }) => {
   );
   const logout = useCallback(() => dispatch(logoutUser()), [dispatch]);
   const signup = useCallback((payload) => dispatch(signupUser(payload)).unwrap(), [dispatch]);
+  const bookAppointment = useCallback((payload) => dispatch(createBooking(payload)).unwrap(), [dispatch]);
   const clearError = useCallback(() => dispatch(clearAuthError()), [dispatch]);
 
   const value = useMemo(
@@ -32,8 +34,12 @@ export const AuthProvider = ({ children }) => {
       isLoading: status === 'loading',
       login,
       signup,
+      bookAppointment,
       logout,
       clearError,
+      isAuthModalOpen,
+      openAuthModal: () => setIsAuthModalOpen(true),
+      closeAuthModal: () => setIsAuthModalOpen(false),
     }),
     [
       bookings,
@@ -44,6 +50,8 @@ export const AuthProvider = ({ children }) => {
       user,
       login,
       signup,
+      bookAppointment,
+      isAuthModalOpen,
     ]
   );
 

@@ -1,5 +1,5 @@
-const mongoose = require('mongoose');
-const Booking = require('../models/booking.model');
+const mongoose = require("mongoose");
+const Booking = require("../models/booking.model");
 
 const getStartOfToday = () => {
   const today = new Date();
@@ -9,31 +9,96 @@ const getStartOfToday = () => {
 
 const GET_DASHBOARD = async (req, res) => {
   try {
-    const { bookingId = '', bookingType = '' } = req.query;
+    const {
+      bookingNumber = "",
+      bookingType = "",
+      dateFrom = "",
+      dateTo = "",
+    } = req.query;
+
     const today = getStartOfToday();
+
     const monthAgo = new Date(today);
     monthAgo.setDate(monthAgo.getDate() - 30);
+
     const filters = {};
 
-    if (bookingId.trim()) {
-      if (!mongoose.isValidObjectId(bookingId.trim())) {
-        return res.status(200).json({ success: true, data: { stats: { pastMonth: 0, active: 0, total: 0 }, bookings: [] } });
+    if (bookingNumber.trim()) {
+      if (!mongoose.isValidObjectId(bookingNumber.trim())) {
+        return res.status(200).json({
+          success: true,
+          data: {
+            stats: {
+              pastMonth: 0,
+              active: 0,
+              total: 0,
+            },
+            bookings: [],
+          },
+        });
       }
-      filters._id = bookingId.trim();
+
+      filters.bookingNumber = bookingNumber.trim();
     }
-    if (bookingType.trim()) filters.therapyName = { $regex: bookingType.trim(), $options: 'i' };
+
+    if (bookingType.trim()) {
+      filters.therapyName = {
+        $regex: `^${bookingType.trim()}$`,
+        $options: "i",
+      };
+    }
+
+    // Date range filter
+    if (dateFrom || dateTo) {
+      filters.dateOfAppointment = {};
+
+      if (dateFrom) {
+        filters.dateOfAppointment.$gte = new Date(`${dateFrom}T00:00:00.000Z`);
+      }
+
+      if (dateTo) {
+        filters.dateOfAppointment.$lte = new Date(`${dateTo}T23:59:59.999Z`);
+      }
+    }
 
     const [pastMonth, active, total, bookings] = await Promise.all([
-      Booking.countDocuments({ createdAt: { $gte: monthAgo } }),
-      Booking.countDocuments({ dateOfAppointment: { $gte: today } }),
+      Booking.countDocuments({
+        createdAt: { $gte: monthAgo },
+      }),
+
+      Booking.countDocuments({
+        dateOfAppointment: { $gte: today },
+      }),
+
       Booking.countDocuments(),
-      Booking.find(filters).populate('user', 'name email role').sort({ dateOfAppointment: -1, createdAt: -1 }).lean(),
+
+      Booking.find(filters)
+        .populate("user", "name email role")
+        .sort({
+          dateOfAppointment: -1,
+          createdAt: -1,
+        })
+        .lean(),
     ]);
 
-    return res.status(200).json({ success: true, data: { stats: { pastMonth, active, total }, bookings } });
+    return res.status(200).json({
+      success: true,
+      data: {
+        stats: {
+          pastMonth,
+          active,
+          total,
+        },
+        bookings,
+      },
+    });
   } catch (error) {
-    console.error('GET_DASHBOARD error:', error);
-    return res.status(500).json({ success: false, message: 'Unable to load dashboard data' });
+    console.error("GET_DASHBOARD error:", error);
+
+    return res.status(500).json({
+      success: false,
+      message: "Unable to load dashboard data",
+    });
   }
 };
 

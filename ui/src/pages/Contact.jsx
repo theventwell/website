@@ -1,209 +1,229 @@
-import React, { useState } from 'react';
-import { MapPin, Phone, Mail, Clock } from 'lucide-react';
+import { useEffect, useState } from "react";
+import {
+  CalendarDays,
+  CheckCircle2,
+  Clock,
+  Mail,
+  MapPin,
+  Phone,
+} from "lucide-react";
+import { useAuth } from "../context/AuthContext";
+
+const today = new Date().toISOString().slice(0, 10);
 
 const Contact = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    phone: '',
-    service: '',
-    message: '',
+  const { user, bookAppointment, openAuthModal } = useAuth();
+  const [form, setForm] = useState({
+    phone: "",
+    countryCode: "+91",
+    therapyName: "",
+    dateOfAppointment: "",
   });
-  const [submitted, setSubmitted] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [status, setStatus] = useState("idle");
+  const [error, setError] = useState("");
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setIsSubmitting(true);
-
-    // Simulate API call / form processing
-    setTimeout(() => {
-      setIsSubmitting(false);
-      setSubmitted(true);
-      // In a real app this would POST to backend
-      console.log('Form submitted:', formData);
-    }, 850);
-  };
-
-  const resetForm = () => {
-    setSubmitted(false);
-    setFormData({ name: '', email: '', phone: '', service: '', message: '' });
+  useEffect(() => {
+    if (user?.phoneNumber)
+      setForm((value) => ({
+        ...value,
+        phone: value.phone || user.phoneNumber,
+      }));
+  }, [user]);
+  const update = (field) => (event) =>
+    setForm((value) => ({ ...value, [field]: event.target.value }));
+  const submit = async (event) => {
+    event.preventDefault();
+    setError("");
+    if (!user) {
+      openAuthModal();
+      return;
+    }
+    setStatus("loading");
+    try {
+      await bookAppointment(form);
+      setStatus("success");
+    } catch (requestError) {
+      setError(requestError || "Unable to book your appointment");
+      setStatus("idle");
+    }
   };
 
   return (
-    <div className="pt-16 lg:pt-20">
-      {/* Header */}
-      <section className="bg-brand-blue-900 text-white py-14 lg:py-20">
-        <div className="w-[94%] max-w-[1600px] mx-auto px-6 lg:px-8 text-center">
-          <div className="uppercase tracking-[2.5px] text-xs mb-4 text-white/50">WE’RE HERE FOR YOU</div>
-          <h1 className="text-5xl lg:text-6xl font-semibold tracking-[-2.2px] text-accent-warm-500">Let’s start a conversation.</h1>
-          <p className="mt-4 max-w-lg mx-auto text-xl text-white/75">
-            Fill out the form or reach out directly. We typically respond within one business day.
+    <div>
+      <section className="bg-brand-blue-900 py-14 text-white lg:py-20">
+        <div className="mx-auto w-[94%] max-w-7xl px-6 text-center">
+          <p className="mb-4 text-xs uppercase tracking-[2.5px] text-white/50">
+            We’re here for you
+          </p>
+          <h1 className="text-accent-warm-500">Start a conversation.</h1>
+          <p className="mx-auto mt-4 max-w-xl text-lg text-white/75">
+            Choose a date that suits you and take the first step towards feeling
+            better.
           </p>
         </div>
       </section>
-
-      <section className="w-[94%] max-w-[1600px] mx-auto px-6 lg:px-8 py-14 lg:py-16 grid lg:grid-cols-5 gap-x-12 gap-y-12">
-        {/* Contact Form */}
+      <section className="mx-auto grid w-[94%] max-w-7xl gap-12 px-6 py-14 lg:grid-cols-5 lg:py-16">
         <div className="lg:col-span-3">
-          {!submitted ? (
+          {status === "success" ? (
+            <div className="card py-14 text-center">
+              <CheckCircle2 className="mx-auto text-emerald-500" size={56} />
+              <h2 className="mt-6 text-3xl">Your appointment is booked.</h2>
+              <p className="mx-auto mt-3 max-w-md text-slate-600">
+                We’ve saved your request. You can review the appointment at any
+                time from My bookings.
+              </p>
+              <button
+                onClick={() => {
+                  setStatus("idle");
+                  setForm((v) => ({
+                    ...v,
+                    therapyName: "",
+                    dateOfAppointment: "",
+                  }));
+                }}
+                className="btn btn-secondary mt-8"
+              >
+                Book another appointment
+              </button>
+            </div>
+          ) : (
             <>
-              <h2 className="text-3xl tracking-tight font-semibold text-brand-blue-900 mb-2">Book an appointment with us</h2>
-              <p className="text-slate-600 mb-8">Take a step towards being your best self. Tell us a little about what brings you in. All information is confidential.</p>
-
-              <form onSubmit={handleSubmit} className="space-y-5">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+              <p className="text-sm font-semibold uppercase tracking-[0.16em] text-brand-blue-600">
+                Appointment request
+              </p>
+              <h2 className="mt-2 text-3xl">Book a time that works for you</h2>
+              <p className="mb-8 mt-3 text-slate-600">
+                {user
+                  ? `Hello ${user.name}, let's take the first step towards feeling better.`
+                  : "Sign in or create an account to complete your booking."}
+              </p>
+              <form
+                onSubmit={submit}
+                className="space-y-5 rounded-3xl border border-slate-100 bg-white p-6 shadow-sm sm:p-8"
+              >
+                <div className="grid gap-5 sm:grid-cols-2">
                   <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-1.5">Full Name</label>
-                    <input
-                      type="text"
-                      name="name"
-                      value={formData.name}
-                      onChange={handleChange}
-                      required
-                      className="form-input"
-                      placeholder="Alex Rivera"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-1.5">Email Address</label>
-                    <input
-                      type="email"
-                      name="email"
-                      value={formData.email}
-                      onChange={handleChange}
-                      required
-                      className="form-input"
-                      placeholder="you@email.com"
-                    />
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-1.5">Phone Number</label>
-                    <input
-                      type="tel"
-                      name="phone"
-                      value={formData.phone}
-                      onChange={handleChange}
-                      className="form-input"
-                      placeholder="(503) 555-0188"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-600 mb-1.5">Interested In</label>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-600">
+                      Booking type
+                    </label>
                     <select
-                      name="service"
-                      value={formData.service}
-                      onChange={handleChange}
+                      value={form.therapyName}
+                      onChange={update("therapyName")}
                       className="form-input"
                       required
                     >
-                      <option value="">Select service...</option>
-                      <option value="Individual Therapy">Individual Therapy</option>
-                      <option value="Couples Therapy">Couples Therapy</option>
-                      <option value="Family Therapy">Family Therapy</option>
-                      <option value="EMDR / Trauma">EMDR / Trauma</option>
-                      <option value="Executive Coaching">Executive Coaching</option>
-                      <option value="Not sure yet">Not sure yet — just exploring</option>
+                      <option value="">Select a service</option>
+                      <option>Individual Therapy</option>
+                      <option>Couples Therapy</option>
+                      <option>Family Therapy</option>
+                      <option>EMDR / Trauma</option>
+                      <option>Executive Coaching</option>
                     </select>
                   </div>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-slate-600 mb-1.5">How can we support you?</label>
-                  <textarea
-                    name="message"
-                    value={formData.message}
-                    onChange={handleChange}
-                    required
-                    rows={5}
-                    className="form-input resize-y min-h-[120px]"
-                    placeholder="I’ve been struggling with anxiety around work and would love to talk to someone who understands high-pressure careers..."
-                  />
-                </div>
-
-                <button
-                  type="submit"
-                  disabled={isSubmitting}
-                  className="btn btn-primary w-full sm:w-auto px-10 py-3.5 text-base mt-2 disabled:opacity-70"
-                >
-                  {isSubmitting ? 'Booking your appointment...' : 'Book an appointment'}
-                </button>
-                <p className="text-xs text-slate-500">We respect your privacy. This information will only be seen by our intake team.</p>
-              </form>
-            </>
-          ) : (
-            <div className="card py-12 text-center">
-              <div className="mx-auto w-16 h-16 rounded-full bg-accent-warm-100 flex items-center justify-center mb-6">
-                <div className="text-accent-warm-500 text-4xl">✓</div>
-              </div>
-              <h3 className="text-3xl tracking-tight font-semibold text-brand-blue-900">Thank you. We’ve received your message.</h3>
-              <p className="mt-3 text-lg text-slate-600 max-w-sm mx-auto">
-                A member of our team will reach out within 1 business day to schedule your free consultation.
-              </p>
-              <button onClick={resetForm} className="mt-8 btn btn-secondary">
-                Send another message
-              </button>
-            </div>
-          )}
-        </div>
-
-        {/* Contact Details Sidebar */}
-        <div className="lg:col-span-2 pt-2">
-          <div className="bg-white rounded-3xl border border-slate-100 p-8 lg:sticky lg:top-24">
-            <div className="uppercase text-xs tracking-[2.5px] text-brand-blue-600 mb-6">DIRECT CONTACT</div>
-
-            <div className="space-y-7 text-[15px]">
-              <div className="flex gap-4">
-                <Phone className="mt-0.5 flex-shrink-0 text-brand-blue-700 w-5 h-5" />
-                <div>
-                  <div className="font-medium text-brand-blue-900">Call or Text</div>
-                  <a href="tel:+15035550142" className="text-brand-blue-700 hover:underline">(503) 555-0142</a>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <Mail className="mt-0.5 flex-shrink-0 text-brand-blue-700 w-5 h-5" />
-                <div>
-                  <div className="font-medium text-brand-blue-900">Email Us</div>
-                  <a href="mailto:hello@theventwell.com" className="text-brand-blue-700 hover:underline">hello@theventwell.com</a>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <MapPin className="mt-0.5 flex-shrink-0 text-brand-blue-700 w-5 h-5" />
-                <div>
-                  <div className="font-medium text-brand-blue-900">Our Space</div>
-                  <div className="text-slate-600">1428 Maple Grove Ave<br />Portland, OR 97205</div>
-                  <a href="https://maps.google.com" target="_blank" rel="noopener noreferrer" className="text-sm text-brand-blue-700 hover:underline">Get directions →</a>
-                </div>
-              </div>
-
-              <div className="flex gap-4">
-                <Clock className="mt-0.5 flex-shrink-0 text-brand-blue-700 w-5 h-5" />
-                <div>
-                  <div className="font-medium text-brand-blue-900">Hours</div>
-                  <div className="text-slate-600 text-[15px]">
-                    Monday–Friday: 8:00am – 7:00pm<br />
-                    Saturday: By appointment<br />
-                    Sunday: Closed
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-600">
+                      Preferred date
+                    </label>
+                    <div className="relative">
+                      
+                      <input
+                        type="date"
+                        min={today}
+                        value={form.dateOfAppointment}
+                        onChange={update("dateOfAppointment")}
+                        className="form-input pl-12"
+                        required
+                      />
+                    </div>
                   </div>
                 </div>
+                <div className="grid gap-5 sm:grid-cols-[100px_1fr]">
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-600">
+                      Code
+                    </label>
+                    <input
+                      value={form.countryCode}
+                      onChange={update("countryCode")}
+                      className="form-input"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1.5 block text-sm font-medium text-slate-600">
+                      Phone number
+                    </label>
+                    <input
+                      type="tel"
+                      value={form.phone}
+                      onChange={update("phone")}
+                      className="form-input"
+                      placeholder="Your contact number"
+                      required
+                    />
+                  </div>
+                </div>
+                {error && (
+                  <p className="rounded-xl bg-red-50 px-4 py-3 text-sm text-red-600">
+                    {error}
+                  </p>
+                )}
+                <button
+                  type="submit"
+                  disabled={status === "loading"}
+                  className="btn btn-primary w-full sm:w-auto disabled:opacity-70"
+                >
+                  {status === "loading"
+                    ? "Booking…"
+                    : user
+                      ? "Book appointment"
+                      : "Sign in to book"}
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+        <aside className="lg:col-span-2">
+          <div className="rounded-3xl border border-slate-100 bg-white p-8 shadow-sm lg:sticky lg:top-28">
+            <p className="mb-6 text-xs uppercase tracking-[2.5px] text-brand-blue-600">
+              Direct contact
+            </p>
+            <div className="space-y-7 text-[15px]">
+              <div className="flex gap-4">
+                <Phone className="text-brand-blue-700" />
+                <div>
+                  <b>Call or Text</b>
+                  <p className="text-slate-600">(503) 555-0142</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <Mail className="text-brand-blue-700" />
+                <div>
+                  <b>Email us</b>
+                  <p className="text-slate-600">hello@theventwell.com</p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <MapPin className="text-brand-blue-700" />
+                <div>
+                  <b>Our space</b>
+                  <p className="text-slate-600">
+                    1428 Maple Grove Ave
+                    <br />
+                    Portland, OR 97205
+                  </p>
+                </div>
+              </div>
+              <div className="flex gap-4">
+                <Clock className="text-brand-blue-700" />
+                <div>
+                  <b>Hours</b>
+                  <p className="text-slate-600">Monday–Friday: 8am–7pm</p>
+                </div>
               </div>
             </div>
-
-            <div className="mt-9 pt-7 border-t border-slate-100 text-xs leading-relaxed text-slate-500">
-              In crisis? Please call or text the 988 Suicide &amp; Crisis Lifeline (US) or visit your nearest emergency room. We also maintain a list of immediate resources on our site.
-            </div>
           </div>
-        </div>
+        </aside>
       </section>
     </div>
   );

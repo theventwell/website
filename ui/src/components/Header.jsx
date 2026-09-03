@@ -1,17 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { Menu, X, Calendar, ChevronDown, LogIn, LogOut, BookOpen, LayoutDashboard } from 'lucide-react';
 import logo from '../assets/main_logo.png';
 import { useAuth } from '../context/AuthContext';
-import LoginModal from './LoginModal';
 
 const Header = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
-  const [isLoginOpen, setIsLoginOpen] = useState(false);
 
-  const { user, logout, isInitializing } = useAuth();
+  const { user, logout, isInitializing, openAuthModal } = useAuth();
 
   const userMenuRef = useRef(null);
 
@@ -59,7 +57,7 @@ const Header = () => {
   const closeMobileMenu = () => setIsMobileMenuOpen(false);
 
   const handleLogin = () => {
-    setIsLoginOpen(true);
+    openAuthModal();
     setIsUserMenuOpen(false);
     closeMobileMenu();
   };
@@ -109,7 +107,7 @@ const Header = () => {
                 The Vent Well
               </span>
               <span className="text-xs lg:text-sm uppercase tracking-[2.5px] text-brand-blue-600">
-                Therapy &amp; Wellbeing • Est. 2018
+                Therapy &amp; Wellbeing
               </span>
             </div>
           </Link>
@@ -146,11 +144,11 @@ const Header = () => {
               <div className="relative" ref={userMenuRef}>
                 <button
                   onClick={() => setIsUserMenuOpen((prev) => !prev)}
-                  className="flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-slate-700 hover:bg-slate-50 hover:text-brand-blue-700 transition-colors text-base font-medium"
+                  className="btn btn-blue flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl  transition-colors text-base font-medium"
                   aria-expanded={isUserMenuOpen}
                   aria-haspopup="true"
                 >
-                  <span>Hi {user.name}</span>
+                  <span>Hey {user.name}</span>
                   <ChevronDown
                     className={`w-4 h-4 transition-transform duration-200 ${
                       isUserMenuOpen ? 'rotate-180' : ''
@@ -203,10 +201,8 @@ const Header = () => {
         </div>
       </div>
 
-      {/* ========== Mobile Navigation ========== */}
-      {/* Backdrop */}
       <div
-        className={`md:hidden fixed inset-0 z-40 bg-slate-900/40 backdrop-blur-sm transition-opacity duration-300 ${
+        className={`md:hidden fixed inset-0 z-[60] bg-slate-950/55 transition-opacity duration-300 ${
           isMobileMenuOpen
             ? 'opacity-100 pointer-events-auto'
             : 'opacity-0 pointer-events-none'
@@ -215,13 +211,70 @@ const Header = () => {
         aria-hidden="true"
       />
 
-      {/* Menu Panel */}
       <div
-        className={`md:hidden fixed top-0 right-0 z-50 h-full w-full max-w-[340px] bg-white shadow-2xl transition-transform duration-300 ease-out ${
+        className={`md:hidden fixed inset-y-0 right-0 z-[70] flex w-[min(88vw,380px)] flex-col overflow-y-auto bg-white shadow-2xl transition-transform duration-300 ease-out will-change-transform ${
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        {/* Top bar inside panel */}
+        <div className="bg-brand-blue-900 px-6 pb-7 pt-6 text-white">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-semibold uppercase tracking-[0.18em] text-white/60">Navigation</span>
+            <button
+              onClick={closeMobileMenu}
+              className="rounded-xl bg-white/10 p-2 text-white transition hover:bg-white/20"
+              aria-label="Close menu"
+            >
+              <X size={21} />
+            </button>
+          </div>
+          <p className="mt-6 text-xl font-semibold">{user ? `Hello, ${user.name.split(' ')[0]}` : 'Welcome to The Vent Well'}</p>
+          <p className="mt-1 text-sm text-white/65">{user ? 'Your account and care, in one place.' : 'Compassionate care, whenever you are ready.'}</p>
+        </div>
+
+        <nav className="flex flex-col gap-1 px-4 py-5">
+          {navItems.map((item) => (
+            <NavLink
+              key={item.to}
+              to={item.to}
+              onClick={closeMobileMenu}
+              className={({ isActive }) => `rounded-xl px-4 py-3.5 text-[16px] font-medium transition-colors ${isActive ? 'bg-brand-blue-50 text-brand-blue-700' : 'text-slate-700 hover:bg-slate-50'}`}
+            >
+              {item.label}
+            </NavLink>
+          ))}
+        </nav>
+
+        <div className="mx-5 border-t border-slate-100" />
+        <div className="px-5 py-5">
+          {isInitializing ? (
+            <div className="h-12 rounded-xl bg-slate-100 animate-pulse" aria-hidden="true" />
+          ) : user ? (
+            <div className="space-y-2">
+              <Link
+                to={user.role === 'admin' ? '/dashboard' : '/bookings'}
+                onClick={closeMobileMenu}
+                className="flex items-center gap-3 rounded-xl bg-brand-blue-50 px-4 py-3.5 text-[16px] font-semibold text-brand-blue-700"
+              >
+                {user.role === 'admin' ? <LayoutDashboard className="w-5 h-5" /> : <BookOpen className="w-5 h-5" />}
+                {user.role === 'admin' ? 'Open dashboard' : 'My bookings'}
+              </Link>
+              <button onClick={handleLogout} className="flex w-full items-center gap-3 rounded-xl px-4 py-3 text-[16px] font-medium text-slate-600 transition hover:bg-slate-50 hover:text-brand-blue-700">
+                <LogOut className="w-5 h-5" /> Log out
+              </button>
+            </div>
+          ) : (
+            <button onClick={handleLogin} className="btn btn-secondary w-full rounded-xl py-3.5 text-base"><LogIn className="w-5 h-5" /> Log in or sign up</button>
+          )}
+        </div>
+
+        <div className="mt-auto px-5 pb-6">
+          <Link to="/contact" onClick={closeMobileMenu} className="btn btn-warm w-full rounded-xl py-3.5 text-base shadow-premium">
+            <Calendar className="w-5 h-5" /> Book an appointment
+          </Link>
+        </div>
+      </div>
+      {/* Mobile drawer content above. */}
+      <div className="hidden">
         <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100">
           <span className="text-sm font-medium tracking-wide text-slate-500 uppercase">
             Menu
@@ -307,8 +360,6 @@ const Header = () => {
           </p>
         </div>
       </div>
-
-      <LoginModal isOpen={isLoginOpen} onClose={() => setIsLoginOpen(false)} />
     </header>
   );
 };
