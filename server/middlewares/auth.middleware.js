@@ -6,6 +6,10 @@ const authenticate = (req, res, next) => {
   const bearerToken = header?.startsWith('Bearer ') ? header.slice(7) : null;
   const token = req.cookies?.[COOKIE_NAME] || bearerToken;
 
+  console.log("Header - ", header);
+  console.log("Bearer Token - ", bearerToken);
+  console.log("Token - ", token);
+
   if (!token) {
     return res.status(401).json({
       success: false,
