@@ -23,24 +23,12 @@ const GET_DASHBOARD = async (req, res) => {
 
     const filters = {};
 
+    // Booking Number
     if (bookingNumber.trim()) {
-      if (!mongoose.isValidObjectId(bookingNumber.trim())) {
-        return res.status(200).json({
-          success: true,
-          data: {
-            stats: {
-              pastMonth: 0,
-              active: 0,
-              total: 0,
-            },
-            bookings: [],
-          },
-        });
-      }
-
       filters.bookingNumber = bookingNumber.trim();
     }
 
+    // Booking Type
     if (bookingType.trim()) {
       filters.therapyName = {
         $regex: `^${bookingType.trim()}$`,
@@ -48,7 +36,7 @@ const GET_DASHBOARD = async (req, res) => {
       };
     }
 
-    // Date range filter
+    // Date range
     if (dateFrom || dateTo) {
       filters.dateOfAppointment = {};
 
