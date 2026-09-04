@@ -62,7 +62,7 @@ const Dashboard = () => {
       color: "bg-brand-blue-50 text-brand-blue-700",
     },
     {
-      label: "Active Bookings",
+      label: "Upcoming Appointments",
       value: data.stats.active,
       icon: Activity,
       color: "bg-emerald-50 text-emerald-700",
