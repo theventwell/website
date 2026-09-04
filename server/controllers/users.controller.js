@@ -20,15 +20,33 @@ const CREATE_BOOKING = async (req, res) => {
   try {
     const {
       dateOfAppointment,
+      startTime,
+      endTime,
       therapyName,
       phone,
       countryCode = '+91',
+      mode,
     } = req.body;
 
-    if (!dateOfAppointment || !therapyName?.trim() || !phone?.trim()) {
+    if (
+      !dateOfAppointment ||
+      !startTime ||
+      !endTime ||
+      !therapyName?.trim() ||
+      !phone?.trim() ||
+      !mode
+    ) {
       return res.status(400).json({
         success: false,
-        message: 'Date, booking type, and phone number are required',
+        message:
+          'Date, time slot, booking type, phone number, and mode are required',
+      });
+    }
+
+    if (!['offline', 'virtual'].includes(mode)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid appointment mode',
       });
     }
 
@@ -56,6 +74,20 @@ const CREATE_BOOKING = async (req, res) => {
       });
     }
 
+    // Check whether the selected slot is already booked
+    const existingBooking = await Booking.findOne({
+      dateOfAppointment: appointmentDate,
+      startTime,
+      endTime,
+    });
+
+    if (existingBooking) {
+      return res.status(409).json({
+        success: false,
+        message: 'This time slot is already booked. Please select another slot.',
+      });
+    }
+
     // Get current year and month
     const year = new Date().getFullYear();
     const month = String(new Date().getMonth() + 1).padStart(2, '0');
@@ -72,12 +104,8 @@ const CREATE_BOOKING = async (req, res) => {
       }
     );
 
-    // 1 -> 01
-    // 2 -> 02
-    // 10 -> 10
     const sequence = String(counter.sequence).padStart(4, '0');
 
-    // 2026 + 09 + 01 = 20260901
     const bookingNumber = Number(`${year}${month}${sequence}`);
 
     const booking = await Booking.create({
@@ -88,6 +116,9 @@ const CREATE_BOOKING = async (req, res) => {
       email: user.email,
       fullName: user.name,
       dateOfAppointment: appointmentDate,
+      startTime,
+      endTime,
+      mode,
       therapyName: therapyName.trim(),
     });
 
@@ -102,6 +133,44 @@ const CREATE_BOOKING = async (req, res) => {
     return res.status(500).json({
       success: false,
       message: 'Unable to book your appointment. Please try again later',
+    });
+  }
+};
+
+const GET_BOOKED_SLOTS = async (req, res) => {
+  try {
+    const { date } = req.query;
+
+    if (!date) {
+      return res.status(400).json({
+        success: false,
+        message: 'Date is required',
+      });
+    }
+
+    const appointmentDate = new Date(date);
+
+    if (Number.isNaN(appointmentDate.getTime())) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid date',
+      });
+    }
+
+    const bookings = await Booking.find({
+      dateOfAppointment: appointmentDate,
+    }).select('startTime endTime -_id');
+
+    return res.status(200).json({
+      success: true,
+      data: bookings,
+    });
+  } catch (error) {
+    console.error('GET_BOOKED_SLOTS error:', error);
+
+    return res.status(500).json({
+      success: false,
+      message: 'Unable to fetch available slots',
     });
   }
 };
@@ -223,4 +292,4 @@ const LOGOUT_USER = async (req, res) => {
   });
 };
 
-module.exports = { SIGNUP_USER, LOGIN_USER, CREATE_BOOKING, GET_CURRENT_USER, LOGOUT_USER };
+module.exports = { SIGNUP_USER, LOGIN_USER, CREATE_BOOKING, GET_BOOKED_SLOTS, GET_CURRENT_USER, LOGOUT_USER };

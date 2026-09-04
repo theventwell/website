@@ -58,6 +58,7 @@ const MyBookings = () => {
             onClick={() => setSelected(null)}
             className="absolute inset-0 bg-slate-900/45 backdrop-blur-sm"
           />
+
           <div
             role="dialog"
             aria-modal="true"
@@ -65,41 +66,83 @@ const MyBookings = () => {
           >
             <button
               onClick={() => setSelected(null)}
-              className="absolute right-4 top-4 rounded-xl p-2 text-slate-500 hover:text-brand-blue-700"
+              className="absolute right-4 top-4 rounded-xl p-2 text-slate-500 transition hover:bg-slate-100 hover:text-brand-blue-700"
               aria-label="Close"
             >
               <X size={20} />
             </button>
+
             <p className="text-sm font-semibold uppercase tracking-[.16em] text-brand-blue-600">
               Appointment details
             </p>
+
             <h2 className="mt-3 text-3xl">{selected.therapyName}</h2>
-            <dl className="mt-7 space-y-4 text-sm">
+
+            <dl className="mt-7 space-y-5 text-sm">
+              {/* Date & Time */}
               <div>
-                <dt className="text-slate-500">Date</dt>
-                <dd className="mt-1 font-medium text-slate-800">
-                  {formatDate(selected.dateOfAppointment)}
+                <dt className="text-slate-500">Appointment</dt>
+
+                <dd className="mt-2 rounded-2xl bg-slate-50 p-4">
+                  <div className="flex items-center justify-between gap-4">
+                    <div>
+                      <p className="font-medium text-slate-800">
+                        {formatDate(selected.dateOfAppointment)}
+                      </p>
+                    </div>
+
+                    <p className="mt-1 text-slate-800 font-medium">
+                      {selected.startTime} – {selected.endTime}
+                    </p>
+                  </div>
                 </dd>
               </div>
+
+              {/* Mode */}
+              <div>
+                <dt className="text-slate-500">Mode</dt>
+
+                <dd className="mt-2">
+                  <span
+                    className={`inline-flex items-center rounded-full px-3 py-1.5 text-sm font-medium ${
+                      selected.mode === "offline"
+                        ? "bg-emerald-50 text-emerald-700"
+                        : "bg-violet-50 text-violet-700"
+                    }`}
+                  >
+                    {selected.mode === "offline" ? "In Person" : "Virtual"}
+                  </span>
+                </dd>
+              </div>
+
+              {/* Booking ID */}
               <div>
                 <dt className="text-slate-500">Booking ID</dt>
-                <dd className="mt-1 break-all font-mono text-xs text-slate-700">
-                  {selected.bookingNumber}
+
+                <dd className="mt-1 font-mono text-sm font-medium text-slate-700">
+                  #{selected.bookingNumber}
                 </dd>
               </div>
+
+              {/* Contact Number */}
               <div>
                 <dt className="text-slate-500">Contact number</dt>
+
                 <dd className="mt-1 font-medium text-slate-800">
                   {selected.countryCode} {selected.phone}
                 </dd>
               </div>
+
+              {/* Email */}
               <div>
                 <dt className="text-slate-500">Email</dt>
-                <dd className="mt-1 font-medium text-slate-800">
+
+                <dd className="mt-1 break-all font-medium text-slate-800">
                   {selected.email}
                 </dd>
               </div>
             </dl>
+
             <button
               onClick={() => setSelected(null)}
               className="btn btn-primary mt-8 w-full"

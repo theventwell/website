@@ -1,15 +1,15 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
 const bookingSchema = new mongoose.Schema(
   {
     bookingNumber: {
-      type: String,
+      type: Number,
       unique: true,
       required: true,
     },
-    user:{
+    user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
+      ref: "User",
       required: true,
     },
     countryCode: {
@@ -37,14 +37,31 @@ const bookingSchema = new mongoose.Schema(
       type: Date,
       required: true,
     },
-    therapyName: {
+    startTime: {
       type: String,
       required: true,
       trim: true,
     },
-  },{
+    endTime: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    mode: {
+      type: String,
+      required: true,
+      trim: true,
+      enum: ["offline", "virtual"],
+    },
+    therapyName: {
+      type: String,
+      required: true,
+      trim: true,
+    }
+  },
+  {
     timestamps: true,
-  }
+  },
 );
 
-module.exports = mongoose.model('Booking', bookingSchema);
+module.exports = mongoose.model("Booking", bookingSchema);

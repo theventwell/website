@@ -6,12 +6,14 @@ const {
   CREATE_BOOKING,
   GET_CURRENT_USER,
   LOGOUT_USER,
+  GET_BOOKED_SLOTS,
 } = require('../controllers/users.controller.js');
 const { authenticate } = require('../middlewares/auth.middleware.js');
 
 userRouter.post('/signup', SIGNUP_USER);
 userRouter.post('/login', LOGIN_USER);
 userRouter.post('/bookings', authenticate, CREATE_BOOKING);
+userRouter.get('/bookings/booked-slots', GET_BOOKED_SLOTS);
 userRouter.get('/me', authenticate, GET_CURRENT_USER);
 userRouter.post('/logout', LOGOUT_USER);
 
