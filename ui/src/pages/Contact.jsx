@@ -1,6 +1,5 @@
 import { useEffect, useState } from "react";
 import {
-  CalendarDays,
   CheckCircle2,
   Clock,
   Mail,
