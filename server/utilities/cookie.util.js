@@ -2,10 +2,10 @@ const COOKIE_NAME = 'token';
 
 const getBaseCookieOptions = () => {
   const isProduction = process.env.NODE_ENV === 'production';
-
+  
   return {
     httpOnly: true,
-    secure: isProduction,
+    secure: isProduction ? true : false,
     sameSite: isProduction ? 'none' : 'lax',
     path: '/',
   };

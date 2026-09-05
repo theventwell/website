@@ -411,18 +411,20 @@ const Contact = () => {
                 </div>
 
                 {/* Phone */}
-                <div className="grid gap-5 sm:grid-cols-[100px_1fr]">
+                <div className="grid grid-cols-[90px_1fr] gap-3 sm:grid-cols-[100px_1fr] sm:gap-5">
                   <div>
                     <label className="mb-1.5 block text-sm font-medium text-slate-600">
                       Code
                     </label>
 
-                    <input
-                      value={form.countryCode}
-                      onChange={update("countryCode")}
-                      className="form-input"
-                      required
-                    />
+                    <div className="relative">
+                      <input
+                        value="+91"
+                        className="form-input pl-10"
+                        disabled
+                        aria-label="Country code"
+                      />
+                    </div>
                   </div>
 
                   <div>

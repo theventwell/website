@@ -2,13 +2,25 @@ const { verifyToken } = require('../utilities/jwt.util');
 const { COOKIE_NAME } = require('../utilities/cookie.util');
 
 const authenticate = (req, res, next) => {
-  const header = req.headers.authorization;
-  const bearerToken = header?.startsWith('Bearer ') ? header.slice(7) : null;
-  const token = req.cookies?.[COOKIE_NAME] || bearerToken;
+  console.log('========== AUTH ==========');
+  console.log('Origin:', req.headers.origin);
+  console.log('Referer:', req.headers.referer);
+  console.log('Cookie header:', req.headers.cookie);
+  console.log('Parsed cookies:', req.cookies);
+  console.log('Authorization:', req.headers.authorization);
 
-  console.log("Header - ", header);
-  console.log("Bearer Token - ", bearerToken);
-  console.log("Token - ", token);
+  const header = req.headers.authorization;
+
+  const bearerToken = header?.startsWith('Bearer ')
+    ? header.slice(7)
+    : null;
+
+  const cookieToken = req.cookies?.[COOKIE_NAME];
+
+  console.log('Cookie token:', !!cookieToken);
+  console.log('Bearer token:', !!bearerToken);
+
+  const token = cookieToken || bearerToken;
 
   if (!token) {
     return res.status(401).json({
@@ -19,7 +31,7 @@ const authenticate = (req, res, next) => {
 
   try {
     req.user = verifyToken(token);
-    return next();
+    next();
   } catch (error) {
     return res.status(401).json({
       success: false,
@@ -27,5 +39,6 @@ const authenticate = (req, res, next) => {
     });
   }
 };
+
 
 module.exports = { authenticate };
