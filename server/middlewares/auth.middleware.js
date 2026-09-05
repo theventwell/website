@@ -2,6 +2,11 @@ const { verifyToken } = require('../utilities/jwt.util');
 const { COOKIE_NAME } = require('../utilities/cookie.util');
 
 const authenticate = (req, res, next) => {
+  const header = req.headers.authorization;
+  const bearerToken = header?.match(/^Bearer\s+(.+)$/i)?.[1]
+    ?.trim();
+  const cookieToken = req.cookies?.[COOKIE_NAME];
+
   console.log('========== AUTH ==========');
   console.log('Origin:', req.headers.origin);
   console.log('Referer:', req.headers.referer);
@@ -9,35 +14,30 @@ const authenticate = (req, res, next) => {
   console.log('Parsed cookies:', req.cookies);
   console.log('Authorization:', req.headers.authorization);
 
-  const header = req.headers.authorization;
-
-  const bearerToken = header?.startsWith('Bearer ')
-    ? header.slice(7)
-    : null;
-
-  const cookieToken = req.cookies?.[COOKIE_NAME];
-
-  console.log('Cookie token:', !!cookieToken);
-  console.log('Bearer token:', !!bearerToken);
-
-  const token = cookieToken || bearerToken;
-
-  if (!token) {
+  if (!cookieToken && !bearerToken) {
     return res.status(401).json({
       success: false,
       message: 'Not authenticated',
     });
   }
 
-  try {
-    req.user = verifyToken(token);
-    next();
-  } catch (error) {
-    return res.status(401).json({
-      success: false,
-      message: 'Session expired. Please log in again',
-    });
+  // Retain cookie authentication, but fall back to a valid Bearer token when
+  // a stale or otherwise invalid cookie is present.
+  for (const token of [cookieToken, bearerToken]) {
+    if (!token) continue;
+
+    try {
+      req.user = verifyToken(token);
+      return next();
+    } catch (error) {
+      // Try the next credential source.
+    }
   }
+
+  return res.status(401).json({
+    success: false,
+    message: 'Session expired. Please log in again',
+  });
 };
 
 

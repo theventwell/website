@@ -227,7 +227,9 @@ const SIGNUP_USER = async (req, res) => {
       .json({
         success: true,
         message: "Account created successfully",
-        data: { user: serializeUser(user), bookings: [] },
+        // Keep the cookie response for existing clients, and also expose the
+        // token for clients that authenticate with an Authorization header.
+        data: { token, user: serializeUser(user), bookings: [] },
       });
   } catch (error) {
     console.error("SIGNUP_USER error:", error);
@@ -272,9 +274,7 @@ const LOGIN_USER = async (req, res) => {
       role: user.role,
     });
 
-    // Set cookie in browser
-    console.log(COOKIE_NAME, token, getCookieOptions());
-
+    // Preserve cookie authentication for existing clients.
     res.cookie(COOKIE_NAME, token, getCookieOptions());
 
     const bookings = await getUserBookings(user._id);
@@ -283,6 +283,7 @@ const LOGIN_USER = async (req, res) => {
       success: true,
       message: "Login successful",
       data: {
+        token,
         user: serializeUser(user),
         bookings,
       },

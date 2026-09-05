@@ -1,18 +1,15 @@
+import { getAuthToken } from './tokenStorage';
+
 const API_BASE = import.meta.env.VITE_API_URL;
 
 export async function apiFetch(path, options = {}) {
   const { headers, body, ...rest } = options;
-  console.log('====================================');
-  console.log(API_BASE);
-  console.log('====================================');
-  console.log(path);
-  console.log('====================================');
-  console.log(options);
-  console.log('====================================');
+  const token = getAuthToken();
   const response = await fetch(`${API_BASE}${path}`, {
     credentials: 'include',
     headers: {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
       ...headers,
     },
     body: body ? JSON.stringify(body) : undefined,
