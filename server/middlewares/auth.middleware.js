@@ -7,13 +7,6 @@ const authenticate = (req, res, next) => {
     ?.trim();
   const cookieToken = req.cookies?.[COOKIE_NAME];
 
-  console.log('========== AUTH ==========');
-  console.log('Origin:', req.headers.origin);
-  console.log('Referer:', req.headers.referer);
-  console.log('Cookie header:', req.headers.cookie);
-  console.log('Parsed cookies:', req.cookies);
-  console.log('Authorization:', req.headers.authorization);
-
   if (!cookieToken && !bearerToken) {
     return res.status(401).json({
       success: false,
